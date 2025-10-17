@@ -12,12 +12,11 @@
 const char *SHM_NOMBRE = "/shm_nombre";
 const char *SEM_NOMBRE = "/sem_nombre";
 const char *SEM_NOMBRE2 = "/sem_nombre2";
+const char *SEM_MUTEX = "/sem_mutex";
 
 //Creo la estructura que va a guardar los valores para las funciones.
 struct dato_compartido {
 	int valor_generado;
-	int bandera_P3_lista;
-	int bandera_P4_lista;
 } dato;
 
 //Variable para guardar el valor de los semaforos.
@@ -86,9 +85,26 @@ int main(void) {
 		perror("Hubo un error al crear el semaforo para el proceso P2.");
 		exit(-1);
 	}
+	//Creo el semaforo Mutex que va a proteger la variable compartida.
+	sem_t *mutex = sem_open(SEM_MUTEX, O_CREAT, 0666, 1);
+	if (mutex == SEM_FAILED) {
+		perror("Ha ocurrido un error al crear el semaforo mutex.\n");
+		exit(-1);
+	}
+	//Defino dos semaforos sin nombre para P1 y P2.
+	sem_t sem_p1, sem_p2;
+	if (sem_init(&sem_p1, 1, 0) == -1) {
+		perror("No se ha creado correctamente sem_p1 sin nombre.\n");
+		exit(-1);
+	}
+	if (sem_init(&sem_p2, 1, 0) == -1) {
+		perror("No se ha creado correctamente sem_p2 sin nombre.\n");
+		exit(-1);
+	}
 
 	//Creamos a los procesos P1 y P2
 	if (fork() == 0) {
+		sem_wait(&sem_p2);
 		printf("Hola soy el proceso P2 y ahora mostrare los valores de las potencias.\n");
 		int n;
 		double a3;
@@ -96,13 +112,14 @@ int main(void) {
 		scanf("%d", &n);
 		printf("Ingresa el exponente: \n");
 		scanf("%lf", &a3);
-		sem_wait(sem2);
+		sem_wait(mutex);
 		dt -> valor_generado = potencias(n, a3);
-		dt -> bandera_P4_lista = 0;
+		sem_post(mutex);
 		sem_post(sem2);
+		sem_post(&sem_p1);
 		return 0;
 	} else {
-		sem_post(sem);
+		sem_wait(&sem_p1);
 		printf("Hola soy el proceso P1 y ahora mostrare unos valores siguiendo la secuencia de fibonacci.\n");
 		int n;
 		int a1;
@@ -113,9 +130,11 @@ int main(void) {
 		scanf("%d", &a1);
 		printf("Ingrese el segundo valor de la secuencia: \n");
 		scanf("%d", &a2);
+		sem_wait(mutex);
 		dt -> valor_generado = fibonacci(n, a1, a2);
-		dt -> bandera_P3_lista = 0;
-		sem_wait(sem);
+		sem_post(mutex);
+		sem_post(sem);
+		sem_post(&sem_p2);
 		return 0;
 	}
 	//Cerramos todo.
@@ -126,4 +145,3 @@ int main(void) {
 	printf("Los procesos P1 y P2 han terminado.\n");
 	return 0;
 }
-
