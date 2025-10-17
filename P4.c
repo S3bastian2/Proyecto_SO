@@ -14,8 +14,6 @@ const char *SEM_NOMBRE2 = "/sem_nombre2";
 //Creo la estructura que va a guardar los valores para las fun>
 struct dato_compartido {
         int valor_generado;
-	int bandera_P3_lista;
-        int bandera_P4_lista;
 } dato;
 
 //Variable para guardar el valor de los semaforos.
@@ -35,16 +33,16 @@ int main(void) {
                 exit(-1);
         }
         //Abrimos el semaforo para el proceso 4.
-        sem_t *sem4 = sem_open(SEM_NOMBRE2, 1);
+        sem_t *sem4 = sem_open(SEM_NOMBRE2, 0);
         if (sem4 == SEM_FAILED) {
                 perror("Ha ocurrido un problema al crear el semaforo.\n");
                 exit(-1);
        	}
 	//Generamos el cuerpo del proceso P4.
+	sem_wait(sem4); //15. Reducimos el valor del semaforo de P2 y P4 de forma global.
 	printf("Hola soy el proceso 4 y ahora leere los valores de la secuencia de potencias de 2.\n");
-	sem_wait(sem4);
 	printf("%d\n", dt -> valor_generado);
-	dt -> bandera_P4_lista = 1;
+	sem_wait(sem4); //16. Detenemos el proceso P4.
 
 	//Cerramos todo menos el espacio de memoria.
 	munmap(dt, sizeof(dato));

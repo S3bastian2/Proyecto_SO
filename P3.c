@@ -14,8 +14,6 @@ const char *SEM_NOMBRE = "/sem_nombre";
 //Creo la estructura que va a guardar los valores para las funciones.
 struct dato_compartido {
         int valor_generado;
-	int bandera_P3_lista;
-        int bandera_P4_lista;
 } dato;
 
 //Variable para guardar el valor de los semaforos.
@@ -41,11 +39,10 @@ int main(void) {
                 exit(-1);
         }
 	//Aquí definire el cuerpo de P3.
-	sem_wait(sem3);
+	sem_wait(sem3); //7. Reducimos el valor del semaforo de P1 y P3 de forma global.
 	printf("Hola soy el proceso 3 y ahora leere los valores de la variable N.\n");
 	printf("%d\n", dt -> valor_generado);
-	dt -> bandera_P3_lista = 1;
-	sem_post(sem3);
+	sem_wait(sem3); //8. Se bloquea a P3 y P1 tambien lo estaran de forma global.
 
 	//Cerramos todo, menos el espacio de memoria.
 	munmap(dt, sizeof(dato));
@@ -54,4 +51,3 @@ int main(void) {
 	printf("El proceso 3 ha terminado.\n");
 	return 0;
 }
-
