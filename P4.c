@@ -33,21 +33,40 @@ int main(void) {
                 exit(-1);
         }
         //Abrimos el semaforo para el proceso 4.
-        sem_t *sem4 = sem_open(SEM_NOMBRE2, 0);
+        sem_t *sem4 = sem_open(SEM_NOMBRE2, O_CREAT, 0666, 0);
         if (sem4 == SEM_FAILED) {
                 perror("Ha ocurrido un problema al crear el semaforo.\n");
                 exit(-1);
        	}
+
+        sem_t *mutex2 = sem_open("/sem_mutex2", O_CREAT, 0666, 0);
+	if (mutex2 == SEM_FAILED) {
+		printf("A ocurrido un error al crear el semaforo mutex2");
+		exit(-1);
+	}
+
+        //Defino el semaforo de carrera.
+	sem_t *sem_carrera = sem_open("/sem_carrera", O_CREAT,  0666, 1);
+	if (sem_carrera == SEM_FAILED) {
+		printf("Ha ocurrido un error al crear el semaforo de carrera.");
+		exit(-1);
+	}
+
 	//Generamos el cuerpo del proceso P4.
-	sem_wait(sem4); //15. Reducimos el valor del semaforo de P2 y P4 de forma global.
-	printf("Hola soy el proceso 4 y ahora leere los valores de la secuencia de potencias de 2.\n");
-	printf("%d\n", dt -> valor_generado);
-	sem_wait(sem4); //16. Detenemos el proceso P4.
+        while (1) {
+	        sem_wait(sem4); 
+	        printf("El proceso P4 esta en funcionamiento.\n");
+                printf(", %d\n", dt -> valor_generado);
+                sem_post(sem_carrera);
+	        sem_wait(sem4);
+                //sem_wait(sem4);
+        }
 
 	//Cerramos todo menos el espacio de memoria.
 	munmap(dt, sizeof(dato));
         close(descriptor);
         sem_close(sem4);
+        sem_close(mutex2);
         printf("El proceso 4 ha terminado.\n");
         return 0;
 }
