@@ -39,16 +39,9 @@ int main(void) {
                 exit(-1);
        	}
 
-        sem_t *mutex2 = sem_open("/sem_mutex2", O_CREAT, 0666, 0);
-	if (mutex2 == SEM_FAILED) {
+        sem_t *mutex = sem_open("/sem_mutex", O_CREAT, 0666, 0);
+	if (mutex == SEM_FAILED) {
 		printf("A ocurrido un error al crear el semaforo mutex2");
-		exit(-1);
-	}
-
-        //Defino el semaforo de carrera.
-	sem_t *sem_carrera = sem_open("/sem_carrera", O_CREAT,  0666, 1);
-	if (sem_carrera == SEM_FAILED) {
-		printf("Ha ocurrido un error al crear el semaforo de carrera.");
 		exit(-1);
 	}
 
@@ -56,17 +49,17 @@ int main(void) {
         while (1) {
 	        sem_wait(sem4); 
 	        printf("El proceso P4 esta en funcionamiento.\n");
-                printf(", %d\n", dt -> valor_generado);
-                sem_post(sem_carrera);
+                printf("-%d\n", dt -> valor_generado);
+                sem_post(mutex);
 	        sem_wait(sem4);
-                //sem_wait(sem4);
         }
 
 	//Cerramos todo menos el espacio de memoria.
 	munmap(dt, sizeof(dato));
         close(descriptor);
         sem_close(sem4);
-        sem_close(mutex2);
+        sem_close(mutex);
+        //sem_close(sem_carrera);
         printf("El proceso 4 ha terminado.\n");
         return 0;
 }

@@ -20,33 +20,6 @@ struct dato_compartido {
 int valor_sem;
 int valor_sem2;
 
-/*Defino la función de fibonacci.
-int fibonacci(int n, int a1, int a2) {
-	int sgte_valor;
-	//printf("Secuencia generada: %d, %d", a1, a2);
-	for (int i = 0; i <= n; i++) {
-		sgte_valor = a1 + a2; //Región critica.
-		//printf(", %d", sgte_valor);
-		return sgte_valor;
-		a1 = a2;
-		a2 = sgte_valor;
-	}
-}*/
-
-//defino la función de potencias.
-/*double base = 2;
-int potencias(int n, double a3) {
-	int resultado;
-	for (double i = 0; i <= n; i++) {
-		double potencia = pow(base, a3);
-		resultado = (int)potencia;
-		a3 += 1;
-		printf(", %d", resultado);
-	}
-	printf("\n");
-	return resultado;
-}*/
-
 int main(int argc, char *argv[]) {
 	//abro el espacio de memoria.
 	int descriptor = shm_open(SHM_NOMBRE, O_RDWR, 0666);
@@ -73,7 +46,7 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	}
 	//Defino el semaforo de carrera.
-	sem_t *sem_carrera = sem_open("/sem_carrera", 1);
+	sem_t *sem_carrera = sem_open("/sem_carrera", O_CREAT, 0666, 1);
 	if (sem_carrera == SEM_FAILED) {
 		printf("Ha ocurrido un error al crear el semaforo de carrera.\n");
 		exit(-1);
@@ -128,6 +101,8 @@ int main(int argc, char *argv[]) {
 				a3 += 1;
 				dt -> valor_generado = resultado; //Region critica.
 				sem_post(sem2);
+				sem_wait(mutex);
+				sem_post(mutex2);
 				sem_wait(mutex); //Paramos al productor
 		}
 
@@ -149,6 +124,8 @@ int main(int argc, char *argv[]) {
 				a1 = a2;
 				a2 = sgte_valor;
 			}
+			sem_post(sem_carrera);
+			sem_wait(mutex2);
 		}
 	}
 

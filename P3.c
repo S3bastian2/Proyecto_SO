@@ -45,8 +45,8 @@ int main(void) {
 		exit(-1);
     }
 	
-	sem_t *mutex = sem_open("/sem_mutex", O_CREAT, 0666, 0);
-	if (mutex == SEM_FAILED) {
+	sem_t *mutex2 = sem_open("/sem_mutex2", O_CREAT, 0666, 0);
+	if (mutex2 == SEM_FAILED) {
 		printf("A ocurrido un problema a la hora de crear el semaforo mutex.\n");
 		exit(-1);
 	}
@@ -55,8 +55,8 @@ int main(void) {
 	while(1) {
 		sem_wait(sem3);
 		printf("Proceso P3 en funcionamiento.\n");
-		printf(", %d\n", dt -> valor_generado);
-		sem_post(mutex);
+		printf("%d\n", dt -> valor_generado);
+		sem_post(mutex2);
 		sem_wait(sem3);
 		//sem_wait(sem3);
 	}
@@ -65,6 +65,7 @@ int main(void) {
 	munmap(dt, sizeof(dato));
 	close(descriptor);
 	sem_close(sem3);
+	sem_close(mutex2);
 	printf("El proceso 3 ha terminado.\n");
 	return 0;
 }
